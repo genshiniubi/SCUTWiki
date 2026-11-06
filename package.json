@@ -1,21 +1,22 @@
 {
-  "name": "scutwiki",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "vue-scutwiki",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/genshiniubi/SCUTWiki.git"
+  "dependencies": {
+    "vue": "^3.5.42"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/genshiniubi/SCUTWiki/issues"
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.8",
+    "vite": "^8.2.2",
+    "vite-plugin-vue-devtools": "^8.2.1"
   },
-  "homepage": "https://github.com/genshiniubi/SCUTWiki#readme"
+  "engines": {
+    "node": "^22.18.0 || >=24.12.0"
+  }
 }
