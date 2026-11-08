@@ -1,4 +1,8 @@
+<script setup>
+import Title from '../components/Title.vue'
+</script>
+
 <template>
-  <router-link to="/">← 返回 SCUTWiki</router-link>
+  <Title />
   <p>we will show more in this page</p>
 </template>

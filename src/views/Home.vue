@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import Title from '../components/Title.vue'
 
 const router = useRouter()
 
@@ -12,8 +13,7 @@ function intomore() {
 </script>
 
 <template>
-  <h1 @click="intomain_page">SCUTWiki</h1>
-  <h2>welcome, students of SCUT!</h2>
+  <Title />
   <p class="more-link" @click="intomore">look more</p>
 </template>
 
