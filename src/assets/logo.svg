@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="2048" viewBox="0 0 1024 1024">
+<circle cx="512" cy="512" r="452.5" fill="#FFFFFF"/>
+<circle cx="512" cy="512" r="466" fill="none" stroke="#003F88" stroke-width="26"/>
+<g transform="rotate(0 512.00 172.00)"><ellipse cx="512.00" cy="172.00" rx="24" ry="37" fill="#C8102E" stroke="#FFFFFF" stroke-width="7"/></g>
+<g transform="rotate(72 543.38 194.80)"><ellipse cx="543.38" cy="194.80" rx="24" ry="37" fill="#C8102E" stroke="#FFFFFF" stroke-width="7"/></g>
+<g transform="rotate(144 531.40 231.70)"><ellipse cx="531.40" cy="231.70" rx="24" ry="37" fill="#C8102E" stroke="#FFFFFF" stroke-width="7"/></g>
+<g transform="rotate(216 492.60 231.70)"><ellipse cx="492.60" cy="231.70" rx="24" ry="37" fill="#C8102E" stroke="#FFFFFF" stroke-width="7"/></g>
+<g transform="rotate(288 480.62 194.80)"><ellipse cx="480.62" cy="194.80" rx="24" ry="37" fill="#C8102E" stroke="#FFFFFF" stroke-width="7"/></g>
+<circle cx="512" cy="205" r="12" fill="#C8102E"/>
+<clipPath id="sphere"><circle cx="512" cy="490" r="179"/></clipPath>
+<circle cx="512" cy="490" r="179" fill="#003F88"/>
+<g clip-path="url(#sphere)">
+<path d="M 436.50 307.00 L 436.50 345.70 A 16.50 16.50 0 0 1 436.50 378.70 L 436.50 473.50 A 16.50 16.50 0 0 0 436.50 506.50 L 436.50 601.30 A 16.50 16.50 0 0 1 436.50 634.30 L 436.50 673.00" fill="none" stroke="#FFFFFF" stroke-width="9.0" stroke-linecap="round"/>
+<path d="M 587.50 307.00 L 587.50 473.50 A 16.50 16.50 0 0 1 587.50 506.50 L 587.50 601.30 A 16.50 16.50 0 0 0 587.50 634.30 L 587.50 673.00" fill="none" stroke="#FFFFFF" stroke-width="9.0" stroke-linecap="round"/>
+<path d="M 329.00 414.50 L 367.70 414.50 A 16.50 16.50 0 0 1 400.70 414.50 L 495.50 414.50 A 16.50 16.50 0 0 0 528.50 414.50 L 695.00 414.50" fill="none" stroke="#FFFFFF" stroke-width="9.0" stroke-linecap="round"/>
+<path d="M 329.00 565.50 L 367.70 565.50 A 16.50 16.50 0 0 0 400.70 565.50 L 495.50 565.50 A 16.50 16.50 0 0 1 528.50 565.50 L 623.30 565.50 A 16.50 16.50 0 0 0 656.30 565.50 L 695.00 565.50" fill="none" stroke="#FFFFFF" stroke-width="9.0" stroke-linecap="round"/>
+<rect x="592.00" y="303.00" width="107.00" height="107.00" fill="#FFFFFF"/>
+</g>
+<g transform="rotate(-18 686 322)"><path d="M 634.50 270.50 L 737.50 270.50 L 737.50 373.50 L 702.50 373.50 A 16.50 16.50 0 0 1 669.50 373.50 L 634.50 373.50 L 634.50 338.50 A 16.50 16.50 0 0 1 634.50 305.50 Z" fill="#FFFFFF" stroke="#003F88" stroke-width="8" stroke-linejoin="round"/></g>
+<rect x="344.00" y="671.00" width="34" height="17" fill="#003F88"/>
+<rect x="646.00" y="671.00" width="34" height="17" fill="#003F88"/>
+<rect x="344.00" y="688" width="336.00" height="32.00" fill="#003F88"/>
+<rect x="398.00" y="720" width="32" height="98.00" fill="#003F88"/>
+<rect x="594.00" y="720" width="32" height="98.00" fill="#003F88"/>
+<path d="M 292 792 C 352 804 430 822 504 842 L 504 872 C 430 852 352 834 292 818 Z" fill="#003F88"/>
+<path d="M 732 792 C 672 804 594 822 520 842 L 520 872 C 594 852 672 834 732 818 Z" fill="#003F88"/>
+<path d="M 318 809 C 374 820 404 836 490 852" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+<path d="M 706 809 C 650 820 620 836 534 852" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+</svg>
