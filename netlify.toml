@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+# Vue Router 用的是 history 模式：直接访问 /more 或刷新页面时，
+# Netlify 找不到对应文件会 404，这里统一回退到 index.html 交给前端路由处理。
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
