@@ -1,38 +1,23 @@
 # SCUTWiki
 
-This template should help get you started developing with Vue 3 in Vite.
+SCUT Wiki —— 面向华南理工大学学生的开放维基。
 
-## Recommended IDE Setup
+## 简介
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+本仓库用于协作维护 SCUT Wiki 的内容与站点代码。
 
-## Recommended Browser Setup
+## 结构
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+（待补充）
 
-## Customize configuration
+## 本地开发
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+（待补充）
 
-## Project Setup
+## 参与贡献
 
-```sh
-npm install
-```
+欢迎提交 Issue 或 Pull Request。
 
-### Compile and Hot-Reload for Development
+## 许可
 
-```sh
-npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
+（待补充）

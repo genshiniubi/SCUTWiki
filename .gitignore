@@ -1,3 +1,4 @@
+
 # Logs
 logs
 *.log
@@ -37,3 +38,15 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+
+# Environment variables
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
