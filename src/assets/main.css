@@ -18,3 +18,15 @@ a {
     padding: 0 2rem 4rem;
   }
 }
+
+/* 目录锚点跳转时平滑滚动，并给标题留一点呼吸空间 */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
