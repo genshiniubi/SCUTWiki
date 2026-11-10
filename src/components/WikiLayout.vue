@@ -1,12 +1,13 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
-  // [{ id: 'course', label: '选课', children: [{ id: 'pre', label: '预选' }] }]
+  // [{ id: 'course', label: '选课', mode: 'switch', children: [...] }]
   // id 必须和正文里 <section id="..."> 一致
   items: { type: Array, required: true },
   label: { type: String, default: '本页目录' },
-  // scroll：点左边滚到右边对应段落（默认）
+  // 整页默认模式，单个条目可以用 item.mode 或 section 上的 mode 属性覆盖
+  // scroll：点左边滚到右边对应段落
   // switch：点左边只显示右边对应段落
   mode: {
     type: String,
@@ -23,13 +24,44 @@ const flatItems = computed(() =>
   props.items.flatMap((item) => [item, ...(item.children ?? [])]),
 )
 
+// 子项 -> 父项，用来做模式继承
+const parentOf = computed(() => {
+  const map = new Map()
+  for (const item of props.items) {
+    for (const child of item.children ?? []) map.set(child.id, item)
+  }
+  return map
+})
+
 const activeId = ref(flatItems.value[0]?.id ?? '')
+// 当前是否处于“只显示某一段”的状态
+const isolated = ref(props.mode === 'switch')
 
 const isActive = (item) => item.id === activeId.value
 const hasActiveChild = (item) =>
   item.children?.some((child) => child.id === activeId.value) ?? false
 
-/* ---------------- scroll 模式：滚动高亮 ---------------- */
+/**
+ * 单个条目的模式，优先级：
+ * 1. 目录数组里的 item.mode
+ * 2. 对应 <section mode="switch"> 或 <section data-mode="switch">
+ * 3. 组件上的 mode prop
+ */
+function modeOf(item) {
+  if (item.mode) return item.mode
+
+  const el = document.getElementById(item.id)
+  const attr = el?.getAttribute('data-mode') ?? el?.getAttribute('mode')
+  if (attr === 'switch' || attr === 'scroll') return attr
+
+  // 子项没写就用父项的设置：父项是 switch，子项也按 switch 处理
+  const parent = parentOf.value.get(item.id)
+  if (parent) return modeOf(parent)
+
+  return props.mode
+}
+
+/* ---------------- 滚动高亮（非 isolated 时才生效） ---------------- */
 
 let ticking = false
 let lockUntil = 0
@@ -37,20 +69,25 @@ let lockUntil = 0
 function updateActive() {
   ticking = false
 
+  if (isolated.value) return
   // 刚点过目录：以点击结果为准，别让滚动高亮立刻把它改掉
   if (Date.now() < lockUntil) return
+
+  // 被隐藏的段落（switch 区块）不参与判定，否则它们的 top 是 0 会误判
+  const visible = visibleItems()
+  if (!visible.length) return
 
   // 滚到底部时直接高亮最后一条，避免短页面永远停在中间章节
   const doc = document.documentElement
   if (window.innerHeight + window.scrollY >= doc.scrollHeight - 4) {
-    activeId.value = flatItems.value[flatItems.value.length - 1]?.id ?? activeId.value
+    activeId.value = visible[visible.length - 1].id
     return
   }
 
   const marker = window.scrollY + 100
-  let current = flatItems.value[0]?.id ?? ''
+  let current = visible[0].id
 
-  for (const item of flatItems.value) {
+  for (const item of visible) {
     const el = document.getElementById(item.id)
     if (!el) continue
     if (el.getBoundingClientRect().top + window.scrollY <= marker) {
@@ -61,36 +98,76 @@ function updateActive() {
   activeId.value = current
 }
 
+function visibleItems() {
+  return flatItems.value.filter((item) => {
+    const el = document.getElementById(item.id)
+    return !!el && el.offsetParent !== null
+  })
+}
+
 function onScroll() {
   if (ticking) return
   ticking = true
   requestAnimationFrame(updateActive)
 }
 
-/* ---------------- switch 模式：只显示当前段落 ---------------- */
+/* ---------------- 显隐控制（不依赖标签名） ---------------- */
 
-function syncSwitch() {
-  for (const item of flatItems.value) {
-    const el = document.getElementById(item.id)
-    if (el) el.classList.toggle('is-active', item.id === activeId.value)
+/**
+ * 按 id 统一控制每个块是否显示：
+ * - 滚动视图（非 isolated）：switch 模式的块全部隐藏
+ * - isolated：只显示当前块，以及它的祖先 / 子孙
+ * 用 inline style 而不是 CSS 类，这样 <section>、<nav>、<div> 都能管。
+ */
+function syncVisibility() {
+  const content = contentRef.value
+  if (!content) return
+
+  const activeEl = document.getElementById(activeId.value)
+  if (isolated.value && !activeEl) isolated.value = false
+
+  const ids = new Set(flatItems.value.map((item) => item.id))
+
+  for (const el of content.querySelectorAll('[id]')) {
+    if (!ids.has(el.id)) continue
+
+    const item = flatItems.value.find((entry) => entry.id === el.id)
+    const isSwitch = item ? modeOf(item) === 'switch' : false
+
+    const inChain =
+      !!activeEl &&
+      (el === activeEl || el.contains(activeEl) || activeEl.contains(el))
+
+    const show = isolated.value ? inChain : !isSwitch
+    el.style.display = show ? '' : 'none'
   }
 }
 
-watch(activeId, () => {
-  if (props.mode === 'switch') syncSwitch()
+watch([activeId, isolated], async () => {
+  await nextTick()
+  syncVisibility()
 })
 
 /* ---------------- 初始化 / 销毁 ---------------- */
 
 onMounted(() => {
-  // 支持直接访问 /college#gpa 这类带锚点的链接
+  // 支持直接访问 /more#scams 这类带锚点的链接
   const hash = decodeURIComponent(window.location.hash.slice(1))
-  if (hash && flatItems.value.some((item) => item.id === hash)) {
-    activeId.value = hash
+  const hashItem = flatItems.value.find((item) => item.id === hash)
+  if (hashItem) activeId.value = hashItem.id
+
+  if (isolated.value || (hashItem && modeOf(hashItem) === 'switch')) {
+    isolated.value = true
+    syncVisibility()
+    return
   }
 
-  if (props.mode === 'switch') {
-    syncSwitch()
+  syncVisibility()
+
+  // 整页都是 switch 块时，滚动视图会空白，兜底显示第一个
+  if (!visibleItems().length) {
+    isolated.value = true
+    syncVisibility()
     return
   }
 
@@ -98,8 +175,8 @@ onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('resize', onScroll, { passive: true })
 
-  if (hash) {
-    requestAnimationFrame(() => document.getElementById(hash)?.scrollIntoView())
+  if (hashItem) {
+    requestAnimationFrame(() => document.getElementById(hashItem.id)?.scrollIntoView())
   }
 })
 
@@ -108,22 +185,27 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', onScroll)
 })
 
-function go(id) {
-  activeId.value = id
+/* ---------------- 点击目录 ---------------- */
+
+async function go(item) {
+  activeId.value = item.id
   lockUntil = Date.now() + 800
   open.value = false // 手机端点完自动收起
 
-  if (props.mode !== 'switch') return
+  if (modeOf(item) === 'switch') {
+    isolated.value = true
+    await nextTick()
+    syncVisibility()
+    return
+  }
 
-  // 切换后如果页面已经滚到下方，把正文顶部拉回视口
-  requestAnimationFrame(() => {
-    const el = contentRef.value
-    if (!el) return
-    const top = el.getBoundingClientRect().top + window.scrollY
-    if (window.scrollY > top) {
-      window.scrollTo({ top: top - 16, behavior: 'smooth' })
-    }
-  })
+  // 从 isolated 状态切回 scroll：先把所有段落放出来，再滚动
+  isolated.value = false
+  await nextTick()
+  syncVisibility()
+
+  document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  history.replaceState(null, '', `#${item.id}`)
 }
 </script>
 
@@ -142,10 +224,8 @@ function go(id) {
 
       <nav class="toc" :class="{ open }" :aria-label="label">
         <template v-for="item in items" :key="item.id">
-          <component
-            :is="mode === 'switch' ? 'button' : 'a'"
-            :href="mode === 'switch' ? undefined : `#${item.id}`"
-            :type="mode === 'switch' ? 'button' : undefined"
+          <a
+            :href="`#${item.id}`"
             class="toc-link"
             :class="{
               active: isActive(item),
@@ -153,29 +233,29 @@ function go(id) {
               'child-active': hasActiveChild(item),
             }"
             :aria-current="isActive(item) ? 'true' : undefined"
-            @click="go(item.id)"
+            @click.prevent="go(item)"
           >
             {{ item.label }}
-          </component>
+          </a>
 
-          <component
-            :is="mode === 'switch' ? 'button' : 'a'"
-            v-for="child in item.children ?? []"
-            :key="child.id"
-            :href="mode === 'switch' ? undefined : `#${child.id}`"
-            :type="mode === 'switch' ? 'button' : undefined"
-            class="toc-link sub"
-            :class="{ active: isActive(child) }"
-            :aria-current="isActive(child) ? 'true' : undefined"
-            @click="go(child.id)"
-          >
-            {{ child.label }}
-          </component>
+          <div v-if="item.children?.length" class="toc-children">
+            <a
+              v-for="child in item.children"
+              :key="child.id"
+              :href="`#${child.id}`"
+              class="toc-link sub"
+              :class="{ active: isActive(child) }"
+              :aria-current="isActive(child) ? 'true' : undefined"
+              @click.prevent="go(child)"
+            >
+              {{ child.label }}
+            </a>
+          </div>
         </template>
       </nav>
     </aside>
 
-    <main ref="contentRef" class="content" :class="{ switch: mode === 'switch' }">
+    <main ref="contentRef" class="content" :class="{ isolate: isolated }">
       <slot />
     </main>
   </div>
@@ -251,10 +331,19 @@ function go(id) {
   opacity: 1;
 }
 
-/* 子项：缩进 */
+/* 子项：缩进交给容器，竖线把它们和父项连起来 */
 .toc-link.sub {
-  padding-left: 1.6rem;
+  padding-left: 0.45rem;
   font-size: 0.85rem;
+}
+
+.toc-children {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-left: 0.85rem;
+  padding-left: 0.7rem;
+  border-left: 1px solid var(--color-border);
 }
 
 .toc-toggle {
@@ -262,17 +351,8 @@ function go(id) {
 }
 
 /* ---------- 右侧正文排版 ---------- */
-.content :deep(section) {
+.content :deep([id]) {
   scroll-margin-top: 1.5rem;
-}
-
-/* switch 模式：只显示当前 section */
-.content.switch :deep(section) {
-  display: none;
-}
-
-.content.switch :deep(section.is-active) {
-  display: block;
 }
 
 .content :deep(h2) {
