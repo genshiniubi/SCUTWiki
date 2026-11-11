@@ -14,6 +14,12 @@ const props = defineProps({
     default: 'scroll',
     validator: (value) => ['scroll', 'switch'].includes(value),
   },
+  // 单选显示：点击任意条目都只显示它自己，其他块全部隐藏
+  // 关掉（false）则恢复“文档模式”——scroll 的块会全部常驻显示
+  single: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const open = ref(false)
@@ -36,6 +42,13 @@ const parentOf = computed(() => {
 const activeId = ref(flatItems.value[0]?.id ?? '')
 // 当前是否处于“只显示某一段”的状态
 const isolated = ref(props.mode === 'switch')
+// 隔离的是“组”：有子项时隔离父项，整个组一起显示
+const isolateId = ref('')
+
+// 找到条目所属的组（有父项就返回父项）
+function groupOf(item) {
+  return parentOf.value.get(item.id) ?? item
+}
 
 const isActive = (item) => item.id === activeId.value
 const hasActiveChild = (item) =>
@@ -123,7 +136,9 @@ function syncVisibility() {
   const content = contentRef.value
   if (!content) return
 
-  const activeEl = document.getElementById(activeId.value)
+  // isolated 时以“组根”为准：父项 + 它的全部子项一起留下
+  const targetId = isolated.value ? isolateId.value || activeId.value : activeId.value
+  const activeEl = document.getElementById(targetId)
   if (isolated.value && !activeEl) isolated.value = false
 
   const ids = new Set(flatItems.value.map((item) => item.id))
@@ -143,7 +158,7 @@ function syncVisibility() {
   }
 }
 
-watch([activeId, isolated], async () => {
+watch([activeId, isolated, isolateId], async () => {
   await nextTick()
   syncVisibility()
 })
@@ -158,6 +173,7 @@ onMounted(() => {
 
   if (isolated.value || (hashItem && modeOf(hashItem) === 'switch')) {
     isolated.value = true
+    isolateId.value = groupOf(hashItem ?? flatItems.value[0]).id
     syncVisibility()
     return
   }
@@ -167,6 +183,7 @@ onMounted(() => {
   // 整页都是 switch 块时，滚动视图会空白，兜底显示第一个
   if (!visibleItems().length) {
     isolated.value = true
+    isolateId.value = groupOf(flatItems.value[0]).id
     syncVisibility()
     return
   }
@@ -188,19 +205,41 @@ onBeforeUnmount(() => {
 /* ---------------- 点击目录 ---------------- */
 
 async function go(item) {
+  const group = groupOf(item)
+  const wasActive = item.id === activeId.value && isolated.value && isolateId.value === group.id
+
   activeId.value = item.id
   lockUntil = Date.now() + 800
   open.value = false // 手机端点完自动收起
 
-  if (modeOf(item) === 'switch') {
-    isolated.value = true
+  // 再点一次当前项：回到“全部普通段落”的浏览状态
+  if (wasActive && props.single) {
+    isolated.value = false
+    isolateId.value = ''
     await nextTick()
     syncVisibility()
+    lockUntil = 0
+    updateActive()
     return
   }
 
-  // 从 isolated 状态切回 scroll：先把所有段落放出来，再滚动
+  // single 模式下所有条目都只显示自己所在的组；否则只有 switch 条目这么做
+  if (props.single || modeOf(item) === 'switch') {
+    isolated.value = true
+    isolateId.value = group.id
+    await nextTick()
+    syncVisibility()
+
+    // 整组可见后，滚到被点的那一块（父项或子项）
+    requestAnimationFrame(() => {
+      document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+    return
+  }
+
+  // 文档模式：恢复所有段落，再滚过去
   isolated.value = false
+  isolateId.value = ''
   await nextTick()
   syncVisibility()
 
