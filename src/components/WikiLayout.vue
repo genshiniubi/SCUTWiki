@@ -90,9 +90,12 @@ function updateActive() {
   const visible = visibleItems()
   if (!visible.length) return
 
-  // 滚到底部时直接高亮最后一条，避免短页面永远停在中间章节
+  // 滚到底部时高亮最后一条；但页面本身不足一屏时不算“到底”，否则一进来就高亮最后一项
   const doc = document.documentElement
-  if (window.innerHeight + window.scrollY >= doc.scrollHeight - 4) {
+  const canScroll = doc.scrollHeight > window.innerHeight + 4
+  const atBottom = window.innerHeight + window.scrollY >= doc.scrollHeight - 4
+
+  if (canScroll && atBottom) {
     activeId.value = visible[visible.length - 1].id
     return
   }
@@ -189,6 +192,18 @@ onMounted(() => {
   }
 
   updateActive()
+
+  // 目录第一项如果是 switch（文档视图里默认不显示），进入页面就直接定位到它，
+  // 而不是把高亮落到第一个可见的块上
+  const first = flatItems.value[0]
+  const firstEl = first ? document.getElementById(first.id) : null
+  if (first && (!firstEl || firstEl.offsetParent === null)) {
+    isolated.value = true
+    isolateId.value = groupOf(first).id
+    activeId.value = first.id
+    syncVisibility()
+  }
+
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('resize', onScroll, { passive: true })
 

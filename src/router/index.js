@@ -20,4 +20,10 @@ const routes = [
 export default createRouter({
   history: createWebHistory(),
   routes,
+  // 切换页面回到顶部；后退/前进恢复原来的位置；带 #锚点 的交给页面自己处理
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition
+    if (to.hash) return false
+    return { top: 0 }
+  },
 })
